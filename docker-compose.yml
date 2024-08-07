@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  filestorage:
+    container_name: vaawel-storage-api
+    image: vaawel/storage-api:latest
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: config/Dockerfile
+    environment:
+      - Secret=REUBSUYVUwUkN6CBxzdYcE9DpkBF7e4d4Kib46dwLZE5egiL0iL5Y3dzgNDrRhMb
+      - Issuer=VaawelBox
+      - Audience=VaawelCoreAPI
+    ports:
+      - "5051:8080"
+    networks:
+      - nginx-proxymanager_default
+
+networks:
+  nginx-proxymanager_default:
+    external: true
