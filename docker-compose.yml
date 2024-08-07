@@ -11,7 +11,7 @@ services:
       - Secret=REUBSUYVUwUkN6CBxzdYcE9DpkBF7e4d4Kib46dwLZE5egiL0iL5Y3dzgNDrRhMb
       - Issuer=VaawelBox
       - Audience=VaawelCoreAPI
-      - Expiration=0
+      - Expiration=3
     ports:
       - "5051:8080"
     networks:
