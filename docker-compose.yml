@@ -1,8 +1,8 @@
 version: "3.9"
 services:
   filestorage:
-    container_name: vaawel-storage-api
-    image: vaawel/storage-api:latest
+    container_name: vaawel-jwt-api
+    image: vaawel/jwt-api:latest
     restart: unless-stopped
     build:
       context: ./
