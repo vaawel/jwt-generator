@@ -1,10 +1,7 @@
-using System.Text;
 using Asp.Versioning;
 using JwtGenerator.API.Services;
 using JwtGenerator.API.Settings;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +11,6 @@ var jwtSettings = new JwtSettings
     Secret = builder.Configuration.GetValue("Secret", builder.Configuration.GetValue("JwtSettings:Secret", "")),
     Issuer = builder.Configuration.GetValue("Issuer", builder.Configuration.GetValue("JwtSettings:Issuer", "")),
     Audience = builder.Configuration.GetValue("Audience", builder.Configuration.GetValue("JwtSettings:Audience", "")),
-    Expiration = Convert.ToInt32(builder.Configuration.GetValue("Expiration", builder.Configuration.GetValue("JwtSettings:Expiration", "")))
 };
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<TokenService>();
@@ -54,36 +50,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret ?? string.Empty))
-    };
-});
-builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapControllers();
 

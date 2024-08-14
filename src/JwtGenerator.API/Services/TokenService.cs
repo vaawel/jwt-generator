@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 using JwtGenerator.API.Settings;
 using Microsoft.IdentityModel.Tokens;
@@ -12,22 +11,16 @@ public class TokenService(JwtSettings jwtSettings)
 
     public string GenerateToken(string idCompany)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret ?? string.Empty));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, idCompany),
-            // new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret ?? string.Empty));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
-            claims: claims,
-            expires: DateTime.Now.AddYears(_jwtSettings.Expiration),
+            claims: null,
+            expires: DateTime.Now.AddYears(100),
             signingCredentials: credentials);
-        
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
