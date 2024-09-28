@@ -1,0 +1,62 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Fetch all tags to use the latest one
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      # Get the latest version in MAJOR.MINOR format or default to 1.0
+      - name: Get current version
+        id: get_version
+        run: |
+          # Get the latest tag matching the pattern (e.g., 1.0, 1.1, etc.)
+          latest_tag=$(git tag --list | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          if [ -z "$latest_tag" ]; then
+            latest_tag="1.0"
+          fi
+          echo "Current version is $latest_tag"
+          echo "version=$latest_tag" >> $GITHUB_ENV
+
+      # Increment the MINOR version
+      - name: Increment MINOR version
+        id: increment_version
+        run: |
+          version=${{ env.version }}
+          major=$(echo $version | cut -d'.' -f1)
+          minor=$(echo $version | cut -d'.' -f2)
+          new_minor=$((minor + 1))
+          new_version="$major.$new_minor"
+          echo "New version is $new_version"
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      # Build the Docker image using the incremented version
+      - name: Build the Docker image - Vaawel JWT Generator
+        run: docker build -f config/Dockerfile . --tag vaawel/jwt-generator:${{ env.new_version }} --tag vaawel/jwt-generator:latest   
+      
+      - name: Login to DockerHub 
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Push Docker images with versioned and latest tags
+      - name: Push to DockerHub - Versioned Tag
+        run: docker push vaawel/jwt-generator:${{ env.new_version }}
+
+      - name: Push to DockerHub - Latest Tag
+        run: docker push vaawel/jwt-generator:latest
+
+      # Create and push new tag for the new version
+      - name: Create and push new tag
+        run: |
+          git tag ${{ env.new_version }}
+          git push origin ${{ env.new_version }}
